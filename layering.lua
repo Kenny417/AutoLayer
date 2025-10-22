@@ -204,7 +204,7 @@ function LayerMe:ProcessMessage(event, msg, name, languageName, channelName, pla
     if not self.db.profile.enabled or isPlayerLoggingOut() then
         return
     end
-    
+
     -- if player is not party leader, raid leader, or raid assist, ignore (if they are in a group)
     if IsInGroup() and not (UnitIsGroupLeader("player") or UnitIsGroupAssistant("player")) then
         LayerMe:DebugPrint("Not party or raid leader/assist, ignoring layer requests")
