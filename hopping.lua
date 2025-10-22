@@ -8,30 +8,30 @@ addonTable.receive_queue = {}
 local selected_layers = {}
 local is_closed = true
 
-function AutoLayer:SendLayerRequest()
+function LayerMe:SendLayerRequest()
   local res = "inv layer "
   res = res .. table.concat(selected_layers, ",")
   LeaveParty()
   table.insert(addonTable.send_queue, res)
-  AutoLayer:DebugPrint("Sending layer request: " .. res)
+  LayerMe:DebugPrint("Sending layer request: " .. res)
 end
 
-function AutoLayer:HopGUI()
+function LayerMe:HopGUI()
   if not is_closed then
     return
   end
 
   is_closed = false
   local frame = AceGUI:Create("Frame")
-  frame:SetTitle("AutoLayer - Hopper")
+  frame:SetTitle("LayerMe - Hopper")
   frame:SetWidth(400)
   frame:SetHeight(250)
   frame:SetStatusText("Beta feature")
   frame:SetLayout("Flow")
 
   -- Register the frame so it closes when pressing ESC
-  _G["AutoLayerHopperFrame"] = frame.frame
-  tinsert(UISpecialFrames, "AutoLayerHopperFrame")
+  _G["LayerMeHopperFrame"] = frame.frame
+  tinsert(UISpecialFrames, "LayerMeHopperFrame")
 
   -- Set a background color and padding
   frame:SetCallback("OnClose", function()
@@ -44,7 +44,7 @@ function AutoLayer:HopGUI()
   send:SetText("Send Layer Request")
   send:SetWidth(160)
   send:SetCallback("OnClick", function()
-    AutoLayer:SendLayerRequest()
+    LayerMe:SendLayerRequest()
   end)
 
   -- Check if NovaWorldBuffs is installed

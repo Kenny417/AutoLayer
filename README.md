@@ -1,6 +1,6 @@
-# AutoLayer - WoW Layering Community Addon
+# LayerMe - WoW Layering Community Addon
 
-AutoLayer is a **community-driven addon** for World of Warcraft designed to facilitate seamless layer switching. It automates the process of inviting players requesting layer changes via chat. The more people use AutoLayer, the easier it becomes for everyone to switch layers!
+LayerMe is a **community-driven addon** for World of Warcraft designed to facilitate seamless layer switching. It automates the process of inviting players requesting layer changes via chat. The more people use LayerMe, the easier it becomes for everyone to switch layers!
 
 ## Features
 
@@ -27,5 +27,5 @@ AutoLayer is a **community-driven addon** for World of Warcraft designed to faci
 - **Auto-Kick**: (Manual interaction required) Automatically remove the last group member when the group is full.
 
 
-## Why Use AutoLayer?
-AutoLayer thrives on community participation! The more players who use it, the better it becomes at facilitating layer changes for everyone.
+## Why Use LayerMe?
+LayerMe thrives on community participation! The more players who use it, the better it becomes at facilitating layer changes for everyone.

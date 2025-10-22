@@ -1,0 +1,12 @@
+## Interface: 11508
+## Title: LayerMe
+## Notes: Automatically invites people who want to switch layers
+## Author: Fizell-Nightslayer (GH:Kenny417)
+## Version: 0.0.1
+## SavedVariables: LayerMeDB
+
+embeds.xml
+main.lua
+configuration.lua
+layering.lua
+hopping.lua

@@ -27,7 +27,7 @@ local function formatWhisperMessage(template, currentLayer)
     return template
 end
 
-function AutoLayer:pruneCache()
+function LayerMe:pruneCache()
     for i, cachedPlayer in ipairs(playersInvitedRecently) do
         -- delete players that are over 5 minutes old
         if cachedPlayer.time + 300 < time() then
@@ -158,7 +158,7 @@ local function parseLayers(message)
     return uniqueLayers
 end
 
-function AutoLayer:addNWBToAddonTable()
+function LayerMe:addNWBToAddonTable()
     for name in LibStub("AceAddon-3.0"):IterateAddons() do
         if name == "NovaWorldBuffs" then
             addonTable.NWB = LibStub("AceAddon-3.0"):GetAddon("NovaWorldBuffs")
@@ -169,7 +169,7 @@ end
 
 --- Finds the current layer from NovaWorldBuffs
 --- @return number? layer The current layer number, or nil if the layer is unknown.
-function AutoLayer:getCurrentLayer()
+function LayerMe:getCurrentLayer()
     if addonTable.NWB == nil then return end -- No NWB, nothing to do here
 
     if NWB_CurrentLayer == nil or tonumber(NWB_CurrentLayer) == nil or NWB_CurrentLayer <= 0 then
@@ -181,14 +181,14 @@ end
 -- Autoexec?
 C_Timer.After(0.1,
     function()
-        AutoLayer:addNWBToAddonTable()
+        LayerMe:addNWBToAddonTable()
         if addonTable.NWB == nil then
-            AutoLayer:Print("Could not find NovaWorldBuffs, disabling NovaWorldBuffs integration")
+            LayerMe:Print("Could not find NovaWorldBuffs, disabling NovaWorldBuffs integration")
         end
     end
 )
 
-function AutoLayer:FindOfflineMembersToKick()
+function LayerMe:FindOfflineMembersToKick()
     for i = 1, GetNumGroupMembers() do
         local name, _, _, _, _, _, _, online, _, _, _, _ = GetRaidRosterInfo(i)
 
@@ -199,9 +199,15 @@ function AutoLayer:FindOfflineMembersToKick()
 end
 
 ---@diagnostic disable-next-line:inject-field
-function AutoLayer:ProcessMessage(event, msg, name, languageName, channelName, playerName2, specialFlags, zoneChannelID,
+function LayerMe:ProcessMessage(event, msg, name, languageName, channelName, playerName2, specialFlags, zoneChannelID,
                                   channelIndex, channelBaseName)
     if not self.db.profile.enabled or isPlayerLoggingOut() then
+        return
+    end
+    
+    -- if player is not party leader, raid leader, or raid assist, ignore (if they are in a group)
+    if IsInGroup() and not (UnitIsGroupLeader("player") or UnitIsGroupAssistant("player")) then
+        LayerMe:DebugPrint("Not party or raid leader/assist, ignoring layer requests")
         return
     end
 
@@ -214,12 +220,12 @@ function AutoLayer:ProcessMessage(event, msg, name, languageName, channelName, p
         return
     end
 
-    local triggerMatch = containsAnyTriggersFromList(msg, AutoLayer:ParseTriggers())
+    local triggerMatch = containsAnyTriggersFromList(msg, LayerMe:ParseTriggers())
     if not triggerMatch then
         return
     end
 
-    local blacklistMatch = containsAnyWordFromList(msg, AutoLayer:ParseBlacklist(), false)
+    local blacklistMatch = containsAnyWordFromList(msg, LayerMe:ParseBlacklist(), false)
     if blacklistMatch then
         self:DebugPrint("Matched blacklist: '", blacklistMatch, "' in message: '", msg, "' from player '",
             name_without_realm, "'")
@@ -227,18 +233,18 @@ function AutoLayer:ProcessMessage(event, msg, name, languageName, channelName, p
     end
 
     if self.db.profile.channelFiltering == "inclusive" then
-        local inclusiveChannelMatch = containsAnyChannelFromList(channelBaseName, AutoLayer:ParseFilteredChannels())
+        local inclusiveChannelMatch = containsAnyChannelFromList(channelBaseName, LayerMe:ParseFilteredChannels())
         if not inclusiveChannelMatch then
             self:DebugPrint("Did not match an included channel. Request came from player: '", name, "' in channel: '",
-                channelBaseName, "' but currenty only allowing these channels: '", AutoLayer:GetFilteredChannels(),
+                channelBaseName, "' but currenty only allowing these channels: '", LayerMe:GetFilteredChannels(),
                 "'")
             return
         end
     elseif self.db.profile.channelFiltering == "exclusive" then
-        local exclusiveChannelMatch = containsAnyChannelFromList(channelBaseName, AutoLayer:ParseFilteredChannels())
+        local exclusiveChannelMatch = containsAnyChannelFromList(channelBaseName, LayerMe:ParseFilteredChannels())
         if exclusiveChannelMatch then
             self:DebugPrint("Matched excluded request from player: '", name, "' in excluded channel: '",
-                exclusiveChannelMatch, "' from list of excluded channels: '", AutoLayer:GetFilteredChannels(), "'")
+                exclusiveChannelMatch, "' from list of excluded channels: '", LayerMe:GetFilteredChannels(), "'")
             return
         end
     end
@@ -252,7 +258,7 @@ function AutoLayer:ProcessMessage(event, msg, name, languageName, channelName, p
         return
     end
 
-    local currentLayer = AutoLayer:getCurrentLayer()
+    local currentLayer = LayerMe:getCurrentLayer()
     local isHighPriorityRequest = (event == "CHAT_MSG_WHISPER");
 
     if string.find(msg, "%d+") then -- Uh oh, this player is picky and wants a specific layer!
@@ -267,7 +273,7 @@ function AutoLayer:ProcessMessage(event, msg, name, languageName, channelName, p
             return
         end
 
-        local requestIsInverted = containsAnyWordFromList(msg, AutoLayer:ParseInvertKeywords(), false)
+        local requestIsInverted = containsAnyWordFromList(msg, LayerMe:ParseInvertKeywords(), false)
         local currLayerMatchesRequest = isNumberInList(currentLayer, requestedLayers)
 
         if requestIsInverted then
@@ -285,7 +291,7 @@ function AutoLayer:ProcessMessage(event, msg, name, languageName, channelName, p
 
     -- check if we've already invited this player in the last 5 minutes
     if not isHighPriorityRequest then
-        AutoLayer:pruneCache()
+        LayerMe:pruneCache()
         for _, cachedPlayer in ipairs(playersInvitedRecently) do
             if cachedPlayer.name == name_without_realm and cachedPlayer.time + 300 > time() then
                 self:DebugPrint("Already invited", name, "in the last 5 minutes")
@@ -342,7 +348,7 @@ function AutoLayer:ProcessMessage(event, msg, name, languageName, channelName, p
 end
 
 ---@diagnostic disable-next-line: inject-field
-function AutoLayer:ProcessSystemMessages(_, SystemMessages)
+function LayerMe:ProcessSystemMessages(_, SystemMessages)
     if not self.db.profile.enabled then
         return
     end
@@ -352,7 +358,7 @@ function AutoLayer:ProcessSystemMessages(_, SystemMessages)
     if characterName then
         local playerNameWithoutRealm = removeRealmName(characterName)
         self:DebugPrint("ERR_JOINED_GROUP_S", playerNameWithoutRealm, "found !")
-        -- Do AutoLayer stuff only if they actually asked for a layer
+        -- Do LayerMe stuff only if they actually asked for a layer
         -- (this may be a normal player we're inviting for different reasons)
         for i, entry in ipairs(recentLayerRequests) do
             if entry.name == playerNameWithoutRealm then
@@ -377,7 +383,7 @@ function AutoLayer:ProcessSystemMessages(_, SystemMessages)
         local playerNameWithoutRealm = removeRealmName(characterName)
         self:DebugPrint("ERR_INVITE_PLAYER_S", playerNameWithoutRealm, "found !")
         if self.db.profile.inviteWhisper then
-            local currentLayer = AutoLayer:getCurrentLayer()
+            local currentLayer = LayerMe:getCurrentLayer()
 
             -- I guess don't whisper people if we don't know what layer we're in?
             if currentLayer == nil or currentLayer <= 0 then
@@ -401,19 +407,19 @@ function AutoLayer:ProcessSystemMessages(_, SystemMessages)
 
             -- Continue with the rest of the function if the player is in the list
 
-            local finalMessage = "[AutoLayer] " ..
+            local finalMessage = "[LayerMe] " ..
                 formatWhisperMessage(self.db.profile.inviteWhisperTemplate, currentLayer)
             CTL:SendChatMessage("NORMAL", characterName, finalMessage, "WHISPER", nil, characterName)
         end
 
         if self.db.profile.inviteWhisperReminder then
-            local finalMessage2 = "[AutoLayer] " .. string.format(self.db.profile.inviteWhisperTemplateReminder)
+            local finalMessage2 = "[LayerMe] " .. string.format(self.db.profile.inviteWhisperTemplateReminder)
             CTL:SendChatMessage("NORMAL", characterName, finalMessage2, "WHISPER", nil, characterName)
         end
     end
 end
 
-function AutoLayer:HandleAutoKick()
+function LayerMe:HandleAutoKick()
     if not self.db.profile.enabled then
         return
     end
@@ -434,15 +440,15 @@ function AutoLayer:HandleAutoKick()
     end
 end
 
-function AutoLayer:ProcessRosterUpdate()
+function LayerMe:ProcessRosterUpdate()
     self:getCurrentLayer()
 end
 
-AutoLayer:RegisterEvent("CHAT_MSG_CHANNEL", "ProcessMessage")
-AutoLayer:RegisterEvent("CHAT_MSG_WHISPER", "ProcessMessage")
-AutoLayer:RegisterEvent("CHAT_MSG_GUILD", "ProcessMessage")
-AutoLayer:RegisterEvent("CHAT_MSG_SYSTEM", "ProcessSystemMessages")
-AutoLayer:RegisterEvent("GROUP_ROSTER_UPDATE", "ProcessRosterUpdate")
+LayerMe:RegisterEvent("CHAT_MSG_CHANNEL", "ProcessMessage")
+LayerMe:RegisterEvent("CHAT_MSG_WHISPER", "ProcessMessage")
+LayerMe:RegisterEvent("CHAT_MSG_GUILD", "ProcessMessage")
+LayerMe:RegisterEvent("CHAT_MSG_SYSTEM", "ProcessSystemMessages")
+LayerMe:RegisterEvent("GROUP_ROSTER_UPDATE", "ProcessRosterUpdate")
 
 function JoinLayerChannel()
     JoinChannelByName("layer")
@@ -459,7 +465,7 @@ function JoinLayerChannel()
 end
 
 function ProccessQueue()
-    AutoLayer:HandleAutoKick()
+    LayerMe:HandleAutoKick()
     if #addonTable.send_queue > 0 then
         local payload = table.remove(addonTable.send_queue, 1)
         local l_channel_num = GetChannelName("layer")
@@ -479,7 +485,7 @@ C_Timer.After(1, function()
             do return end
         end
 
-        AutoLayer:HandleAutoKick()
+        LayerMe:HandleAutoKick()
         ProccessQueue()
     end)
 end)

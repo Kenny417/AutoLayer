@@ -1,33 +1,33 @@
 local addonName, addonTable = ...;
 
-function AutoLayer:SetDebug(info, val)
-    AutoLayer:DebugPrint("SetDebug", info, val)
+function LayerMe:SetDebug(info, val)
+    LayerMe:DebugPrint("SetDebug", info, val)
     self.db.profile.debug = val
 end
 
-function AutoLayer:GetDebug(info)
+function LayerMe:GetDebug(info)
     return self.db.profile.debug
 end
 
-function AutoLayer:SetEnabled(info, val)
-    AutoLayer:DebugPrint("SetEnabled", info, val)
+function LayerMe:SetEnabled(info, val)
+    LayerMe:DebugPrint("SetEnabled", info, val)
     self.db.profile.enabled = val
 end
 
-function AutoLayer:GetEnabled(info)
+function LayerMe:GetEnabled(info)
     return self.db.profile.enabled
 end
 
-function AutoLayer:SetTriggers(info, val)
-    AutoLayer:DebugPrint("SetTriggers", info, val)
+function LayerMe:SetTriggers(info, val)
+    LayerMe:DebugPrint("SetTriggers", info, val)
     self.db.profile.triggers = val
 end
 
-function AutoLayer:GetTriggers(info)
+function LayerMe:GetTriggers(info)
     return self.db.profile.triggers
 end
 
-function AutoLayer:ParseTriggers()
+function LayerMe:ParseTriggers()
     local triggers = {}
     for trigger in string.gmatch(self.db.profile.triggers, "[^,]+") do
         table.insert(triggers, string.lower("*" .. trigger .. "*"))
@@ -35,16 +35,16 @@ function AutoLayer:ParseTriggers()
     return triggers
 end
 
-function AutoLayer:SetBlacklist(info, val)
-    AutoLayer:DebugPrint("SetBlacklist", info, val)
+function LayerMe:SetBlacklist(info, val)
+    LayerMe:DebugPrint("SetBlacklist", info, val)
     self.db.profile.blacklist = val
 end
 
-function AutoLayer:GetBlacklist(info)
+function LayerMe:GetBlacklist(info)
     return self.db.profile.blacklist
 end
 
-function AutoLayer:ParseBlacklist()
+function LayerMe:ParseBlacklist()
     local blacklist = {}
     for trigger in string.gmatch(self.db.profile.blacklist, "[^,]+") do
         table.insert(blacklist, trigger)
@@ -52,16 +52,16 @@ function AutoLayer:ParseBlacklist()
     return blacklist
 end
 
-function AutoLayer:SetInvertKeywords(info, val)
-    AutoLayer:DebugPrint("SetInvertKeywords", info, val)
+function LayerMe:SetInvertKeywords(info, val)
+    LayerMe:DebugPrint("SetInvertKeywords", info, val)
     self.db.profile.invertKeywords = val
 end
 
-function AutoLayer:GetInvertKeywords(info)
+function LayerMe:GetInvertKeywords(info)
     return self.db.profile.invertKeywords
 end
 
-function AutoLayer:ParseInvertKeywords()
+function LayerMe:ParseInvertKeywords()
     local invertKeywords = {}
     for keyword in string.gmatch(self.db.profile.invertKeywords, "[^,]+") do
         table.insert(invertKeywords, keyword)
@@ -69,11 +69,11 @@ function AutoLayer:ParseInvertKeywords()
     return invertKeywords
 end
 
-function AutoLayer:GetFilteredChannels(info)
+function LayerMe:GetFilteredChannels(info)
     return self.db.profile.filteredChannels
 end
 
-function AutoLayer:ParseFilteredChannels()
+function LayerMe:ParseFilteredChannels()
     local filteredChannels = {}
     for channel in string.gmatch(self.db.profile.filteredChannels, "[^,]+") do
         table.insert(filteredChannels, string.lower(channel))
@@ -83,27 +83,27 @@ end
 
 local bunnyLDB = ...
 
-function AutoLayer:Toggle()
+function LayerMe:Toggle()
     self.db.profile.enabled = not self.db.profile.enabled
     self:Print(self.db.profile.enabled and "enabled" or "disabled")
 
     if self.db.profile.enabled then
         if self.db.profile.hideAutoWhispers then
-            self.filterChatEventAutoLayerWhisperMessages()
+            self.filterChatEventLayerMeWhisperMessages()
         end
         if self.db.profile.hideSystemGroupMessages then
             self:filterChatEventSystemGroupMessages()
         end
     
-        addonTable.bunnyLDB.icon = [[Interface\AddOns\AutoLayer_Vanilla\Textures\AutoLayer_enabled_icon]]
+        addonTable.bunnyLDB.icon = [[Interface\AddOns\LayerMe\Textures\LayerMe_enabled_icon]]
     else
         if self.db.profile.hideAutoWhispers then
-            self.unfilterChatEventAutoLayerWhisperMessages()
+            self.unfilterChatEventLayerMeWhisperMessages()
         end
         if self.db.profile.hideSystemGroupMessages then
             self:unfilterChatEventSystemGroupMessages()
         end
 
-        addonTable.bunnyLDB.icon = [[Interface\AddOns\AutoLayer_Vanilla\Textures\AutoLayer_disabled_icon]]
+        addonTable.bunnyLDB.icon = [[Interface\AddOns\LayerMe\Textures\LayerMe_disabled_icon]]
     end
 end
